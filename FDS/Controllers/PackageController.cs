@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FDS.Models;
+using FDS.Models.Response;
 using FDS2.Data;
 using FDS2.Data.Models;
 using Microsoft.AspNetCore.Http;
@@ -23,15 +24,15 @@ namespace FDS.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<PackageReturn> Get()
+        public IEnumerable<PackageResponse> Get()
         {
             var packages = _packageService.GetAll();
             return PreparePackagesModel(packages);
         }
 
-        private IEnumerable<PackageReturn> PreparePackagesModel(IEnumerable<Package> packages)
+        private IEnumerable<PackageResponse> PreparePackagesModel(IEnumerable<Package> packages)
         {
-            return packages.Select(p => new PackageReturn
+            return packages.Select(p => new PackageResponse
             {
                 Id = p.Id.ToString(),
                 Name = p.Name

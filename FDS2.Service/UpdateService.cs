@@ -22,20 +22,19 @@ namespace FDS2.Service
             _versionService = versionService;
         }
 
-        public Update GetUpdate(Guid packageId)
+        public Update GetUpdate(Guid packageId, Guid versionId, string clientCountry, string clientSoftware)
         {
             var package = _packageService.GetById(packageId);
-            var guid = new Guid("8E15BFC4-A4D8-463D-8864-5BC45811DEC2");
-            var version = _versionService.GetById(guid);
+            var version = _versionService.GetById(versionId);
 
-            return FilterUpdates(package.Updates.ToList(), version);
+            return FilterUpdates(package.Updates.ToList(), version, clientCountry, clientSoftware);
         }
 
-        private Update FilterUpdates(List<Update> updates, Data.Models.Version version)
+        private Update FilterUpdates(List<Update> updates, Data.Models.Version version, string clientCountry, string clientSoftware)
         {
-            return updates.Where(u => u.UpdateSoftwares.Any(us => us.Software.Name == "Windows")
+            return updates.Where(u => u.UpdateSoftwares.Any(us => us.Software.Name.ToLower() == clientSoftware.ToLower())
                 && u.Version.Order > version.Order
-                && (u.UpdateCountries.Count() == 0 || u.UpdateCountries.Any(c => c.Country.Code == "MK"))
+                && (u.UpdateCountries.Count() == 0 || u.UpdateCountries.Any(c => c.Country.Code.ToLower() == clientCountry.ToLower()))
                 && (u.PublishDate is null || u.PublishDate <= DateTime.Now)
                 && u.Channel.Value == (int)ChannelEnum.Public)
                 .OrderByDescending(u => u.UpdateCountries.Count()) //Order region-specific updates on top

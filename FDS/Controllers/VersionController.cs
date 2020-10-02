@@ -1,4 +1,5 @@
 ﻿using FDS.Models;
+using FDS.Models.Response;
 using FDS2.Data;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -20,22 +21,27 @@ namespace FDS.Controllers
         }
 
         [HttpPost]
-        public IEnumerable<VersionReturn> Get([FromBody]ClientData data)
+        public IEnumerable<VersionResponse> Get([FromBody]ClientData data)
         {
-            if (Guid.TryParse(data.PackageId, out Guid packageId))
+            if (ValidateClientInput(data, out Guid packageId))
             {
                 var versions = _versionService.GetAllForClient(packageId, data.Software, data.Country);
                 return PrepareVersionsModel(versions);
             }
             else
             {
-                return new List<VersionReturn>();
+                return new List<VersionResponse>();
             }
         }
 
-        private IEnumerable<VersionReturn> PrepareVersionsModel(IEnumerable<FDS2.Data.Models.Version> versions)
+        private bool ValidateClientInput(ClientData data, out Guid packageId)
         {
-            return versions.Select(v => new VersionReturn
+            return Guid.TryParse(data.PackageId, out packageId);
+        }
+
+        private IEnumerable<VersionResponse> PrepareVersionsModel(IEnumerable<FDS2.Data.Models.Version> versions)
+        {
+            return versions.Select(v => new VersionResponse
             {
                 Id = v.Id.ToString(),
                 Name = v.Name

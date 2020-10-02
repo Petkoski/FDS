@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FDS.Models;
+using FDS.Models.Response;
 using FDS2.Data;
+using FDS2.Data.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +15,6 @@ namespace FDS.Controllers
     [Route("[controller]")]
     public class UpdateController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
         private readonly IUpdate _updateService;
 
         public UpdateController(IUpdate updateService)
@@ -23,25 +22,55 @@ namespace FDS.Controllers
             _updateService = updateService;
         }
 
-        [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpPost]
+        public UpdateResponse Get([FromBody]ClientData data)
         {
-            if (Guid.TryParse("F44A6650-7962-454A-971E-49B01F7D9E60", out Guid packageId))
+            if (ValidateClientInput(data, out Guid packageId, out Guid versionId))
             {
-                var update = _updateService.GetUpdate(packageId);
-                var rng = new Random();
-                return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-                {
-                    Date = DateTime.Now.AddDays(index),
-                    TemperatureC = rng.Next(-20, 55),
-                    Summary = Summaries[rng.Next(Summaries.Length)]
-                })
-                .ToArray();
+                var update = _updateService.GetUpdate(packageId, versionId, data.Country, data.Software);
+                return PrepareVersionsModel(update);
             }
             else
             {
-                return new List<WeatherForecast>();
+                return EmptyUpdateResponse();
             }
+        }
+
+        private bool ValidateClientInput(ClientData data, out Guid packageId, out Guid versionId)
+        {
+            bool packageCheck = Guid.TryParse(data.PackageId, out packageId);
+            bool versionCheck = Guid.TryParse(data.VersionId, out versionId);
+            return (packageCheck 
+                && versionCheck 
+                && Enum.TryParse(data.Software, out SoftwareEnum software));
+        }
+
+        private UpdateResponse PrepareVersionsModel(FDS2.Data.Models.Update update)
+        {
+            if (update?.UpdateFiles?.Count() > 0)
+            {
+                return new UpdateResponse
+                {
+                    Files = update.UpdateFiles.Select(f => new FileResponse
+                    {
+                        Id = f.File.Id.ToString(),
+                        Location = f.File.Location,
+                        Checksum = f.File.Checksum
+                    })
+                };
+            }
+            else
+            {
+                return EmptyUpdateResponse();
+            }
+        }
+
+        private UpdateResponse EmptyUpdateResponse()
+        {
+            return new UpdateResponse
+            {
+                Files = new List<FileResponse>()
+            };
         }
     }
 }
