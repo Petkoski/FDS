@@ -26,16 +26,22 @@ namespace FDS.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            var update = _updateService.GetUpdate("F44A6650-7962-454A-971E-49B01F7D9E60");
-
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            if (Guid.TryParse("F44A6650-7962-454A-971E-49B01F7D9E60", out Guid packageId))
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+                var update = _updateService.GetUpdate(packageId);
+                var rng = new Random();
+                return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+                {
+                    Date = DateTime.Now.AddDays(index),
+                    TemperatureC = rng.Next(-20, 55),
+                    Summary = Summaries[rng.Next(Summaries.Length)]
+                })
+                .ToArray();
+            }
+            else
+            {
+                return new List<WeatherForecast>();
+            }
         }
     }
 }

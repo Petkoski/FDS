@@ -5,8 +5,9 @@ using System.Text;
 
 namespace FDS2.Data
 {
-    public interface IUpdate
+    public interface IPackage
     {
-        Update GetUpdate(Guid packageId);
+        IEnumerable<Package> GetAll();
+        Package GetById(Guid id);
     }
 }

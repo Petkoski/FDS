@@ -1,4 +1,5 @@
 ﻿using FDS2.Data;
+using FDS2.Data.Enums;
 using FDS2.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,49 +12,32 @@ namespace FDS2.Service
     public class UpdateService : IUpdate
     {
         private readonly ApplicationDbContext _context;
+        private readonly IPackage _packageService;
+        private readonly IVersion _versionService;
 
-        public UpdateService(ApplicationDbContext context)
+        public UpdateService(ApplicationDbContext context, IPackage packageService, IVersion versionService)
         {
             _context = context;
+            _packageService = packageService;
+            _versionService = versionService;
         }
 
-        public Package GetPackageById(string id)
+        public Update GetUpdate(Guid packageId)
         {
-            var guidId = new Guid(id);
+            var package = _packageService.GetById(packageId);
+            var guid = new Guid("8E15BFC4-A4D8-463D-8864-5BC45811DEC2");
+            var version = _versionService.GetById(guid);
 
-            return _context.Packages
-                .Where(p => p.Id == guidId)
-                .Include(p => p.Updates)
-                    .ThenInclude(u => u.Version)
-                .Include(p => p.Updates)
-                    .ThenInclude(u => u.Channel)
-                .Include(p => p.Updates)
-                    .ThenInclude(u => u.UpdateCountries)
-                        .ThenInclude(uc => uc.Country)
-                .Include(p => p.Updates)
-                    .ThenInclude(u => u.UpdateFiles)
-                        .ThenInclude(uf => uf.File)
-                .Include(p => p.Updates)
-                    .ThenInclude(u => u.UpdateSoftwares)
-                        .ThenInclude(uf => uf.Software)
-                .Include(p => p.PackageFiles)
-                    .ThenInclude(pf => pf.File)
-                .FirstOrDefault();
+            return FilterUpdates(package.Updates.ToList(), version);
         }
 
-        public Update GetUpdate(string id)
-        {
-            var package = GetPackageById(id);
-            return FilterUpdates(package.Updates.ToList());
-        }
-
-        public Update FilterUpdates(List<Update> updates)
+        private Update FilterUpdates(List<Update> updates, Data.Models.Version version)
         {
             return updates.Where(u => u.UpdateSoftwares.Any(us => us.Software.Name == "Windows")
-                && u.Version.Order > 1
+                && u.Version.Order > version.Order
                 && (u.UpdateCountries.Count() == 0 || u.UpdateCountries.Any(c => c.Country.Code == "MK"))
                 && (u.PublishDate is null || u.PublishDate <= DateTime.Now)
-                && u.Channel.Value == 3)
+                && u.Channel.Value == (int)ChannelEnum.Public)
                 .OrderByDescending(u => u.UpdateCountries.Count()) //Order region-specific updates on top
                 .ThenByDescending(u => u.CreatedDate) //Order newest updates on top
                 .FirstOrDefault();
