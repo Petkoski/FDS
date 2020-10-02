@@ -3,10 +3,23 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace FDS2.Data.Migrations
 {
-    public partial class M1 : Migration
+    public partial class Initialmigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Channels",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false, defaultValueSql: "newid()"),
+                    Name = table.Column<string>(nullable: true),
+                    Value = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Channels", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Countries",
                 columns: table => new
@@ -45,11 +58,24 @@ namespace FDS2.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Versions",
+                name: "Softwares",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false, defaultValueSql: "newid()"),
                     Name = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Softwares", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Versions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false, defaultValueSql: "newid()"),
+                    Name = table.Column<string>(nullable: true),
+                    Order = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,11 +114,18 @@ namespace FDS2.Data.Migrations
                     CountryRestrictions = table.Column<bool>(nullable: false),
                     PublishDate = table.Column<DateTime>(nullable: true),
                     VersionId = table.Column<Guid>(nullable: true),
+                    ChannelId = table.Column<Guid>(nullable: true),
                     PackageId = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Updates", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Updates_Channels_ChannelId",
+                        column: x => x.ChannelId,
+                        principalTable: "Channels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Updates_Packages_PackageId",
                         column: x => x.PackageId,
@@ -108,23 +141,23 @@ namespace FDS2.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CountryUpdate",
+                name: "UpdateCountry",
                 columns: table => new
                 {
-                    CountryId = table.Column<Guid>(nullable: false),
-                    UpdateId = table.Column<Guid>(nullable: false)
+                    UpdateId = table.Column<Guid>(nullable: false),
+                    CountryId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CountryUpdate", x => new { x.CountryId, x.UpdateId });
+                    table.PrimaryKey("PK_UpdateCountry", x => new { x.UpdateId, x.CountryId });
                     table.ForeignKey(
-                        name: "FK_CountryUpdate_Countries_CountryId",
+                        name: "FK_UpdateCountry_Countries_CountryId",
                         column: x => x.CountryId,
                         principalTable: "Countries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CountryUpdate_Updates_UpdateId",
+                        name: "FK_UpdateCountry_Updates_UpdateId",
                         column: x => x.UpdateId,
                         principalTable: "Updates",
                         principalColumn: "Id",
@@ -155,10 +188,29 @@ namespace FDS2.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_CountryUpdate_UpdateId",
-                table: "CountryUpdate",
-                column: "UpdateId");
+            migrationBuilder.CreateTable(
+                name: "UpdateSoftware",
+                columns: table => new
+                {
+                    UpdateId = table.Column<Guid>(nullable: false),
+                    SoftwareId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UpdateSoftware", x => new { x.UpdateId, x.SoftwareId });
+                    table.ForeignKey(
+                        name: "FK_UpdateSoftware_Softwares_SoftwareId",
+                        column: x => x.SoftwareId,
+                        principalTable: "Softwares",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UpdateSoftware_Updates_UpdateId",
+                        column: x => x.UpdateId,
+                        principalTable: "Updates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_PackageFile_FileId",
@@ -166,9 +218,19 @@ namespace FDS2.Data.Migrations
                 column: "FileId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UpdateCountry_CountryId",
+                table: "UpdateCountry",
+                column: "CountryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UpdateFile_FileId",
                 table: "UpdateFile",
                 column: "FileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Updates_ChannelId",
+                table: "Updates",
+                column: "ChannelId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Updates_PackageId",
@@ -179,18 +241,26 @@ namespace FDS2.Data.Migrations
                 name: "IX_Updates_VersionId",
                 table: "Updates",
                 column: "VersionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UpdateSoftware_SoftwareId",
+                table: "UpdateSoftware",
+                column: "SoftwareId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CountryUpdate");
-
-            migrationBuilder.DropTable(
                 name: "PackageFile");
 
             migrationBuilder.DropTable(
+                name: "UpdateCountry");
+
+            migrationBuilder.DropTable(
                 name: "UpdateFile");
+
+            migrationBuilder.DropTable(
+                name: "UpdateSoftware");
 
             migrationBuilder.DropTable(
                 name: "Countries");
@@ -199,7 +269,13 @@ namespace FDS2.Data.Migrations
                 name: "Files");
 
             migrationBuilder.DropTable(
+                name: "Softwares");
+
+            migrationBuilder.DropTable(
                 name: "Updates");
+
+            migrationBuilder.DropTable(
+                name: "Channels");
 
             migrationBuilder.DropTable(
                 name: "Packages");

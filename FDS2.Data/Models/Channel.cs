@@ -6,12 +6,12 @@ using System.Text;
 
 namespace FDS2.Data.Models
 {
-    public class Version
+    public class Channel
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public int Order { get; set; }
+        public int Value { get; set; }
     }
 }

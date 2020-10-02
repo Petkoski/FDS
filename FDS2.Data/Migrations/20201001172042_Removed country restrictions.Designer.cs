@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FDS2.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200930200003_M1")]
-    partial class M1
+    [Migration("20201001172042_Removed country restrictions")]
+    partial class Removedcountryrestrictions
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,24 @@ namespace FDS2.Data.Migrations
                 .HasAnnotation("ProductVersion", "3.1.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("FDS2.Data.Models.Channel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("newid()");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Channels");
+                });
 
             modelBuilder.Entity("FDS2.Data.Models.Country", b =>
                 {
@@ -34,21 +52,6 @@ namespace FDS2.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Countries");
-                });
-
-            modelBuilder.Entity("FDS2.Data.Models.CountryUpdate", b =>
-                {
-                    b.Property<Guid>("CountryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UpdateId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("CountryId", "UpdateId");
-
-                    b.HasIndex("UpdateId");
-
-                    b.ToTable("CountryUpdate");
                 });
 
             modelBuilder.Entity("FDS2.Data.Models.File", b =>
@@ -99,6 +102,21 @@ namespace FDS2.Data.Migrations
                     b.ToTable("PackageFile");
                 });
 
+            modelBuilder.Entity("FDS2.Data.Models.Software", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("newid()");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Softwares");
+                });
+
             modelBuilder.Entity("FDS2.Data.Models.Update", b =>
                 {
                     b.Property<Guid>("Id")
@@ -106,8 +124,8 @@ namespace FDS2.Data.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("newid()");
 
-                    b.Property<bool>("CountryRestrictions")
-                        .HasColumnType("bit");
+                    b.Property<Guid?>("ChannelId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("PackageId")
                         .HasColumnType("uniqueidentifier");
@@ -120,11 +138,28 @@ namespace FDS2.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ChannelId");
+
                     b.HasIndex("PackageId");
 
                     b.HasIndex("VersionId");
 
                     b.ToTable("Updates");
+                });
+
+            modelBuilder.Entity("FDS2.Data.Models.UpdateCountry", b =>
+                {
+                    b.Property<Guid>("UpdateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CountryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UpdateId", "CountryId");
+
+                    b.HasIndex("CountryId");
+
+                    b.ToTable("UpdateCountry");
                 });
 
             modelBuilder.Entity("FDS2.Data.Models.UpdateFile", b =>
@@ -142,6 +177,21 @@ namespace FDS2.Data.Migrations
                     b.ToTable("UpdateFile");
                 });
 
+            modelBuilder.Entity("FDS2.Data.Models.UpdateSoftware", b =>
+                {
+                    b.Property<Guid>("UpdateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SoftwareId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UpdateId", "SoftwareId");
+
+                    b.HasIndex("SoftwareId");
+
+                    b.ToTable("UpdateSoftware");
+                });
+
             modelBuilder.Entity("FDS2.Data.Models.Version", b =>
                 {
                     b.Property<Guid>("Id")
@@ -152,24 +202,12 @@ namespace FDS2.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Versions");
-                });
-
-            modelBuilder.Entity("FDS2.Data.Models.CountryUpdate", b =>
-                {
-                    b.HasOne("FDS2.Data.Models.Country", "Country")
-                        .WithMany("CountryUpdates")
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FDS2.Data.Models.Update", "Update")
-                        .WithMany("CountryUpdates")
-                        .HasForeignKey("UpdateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("FDS2.Data.Models.PackageFile", b =>
@@ -189,6 +227,10 @@ namespace FDS2.Data.Migrations
 
             modelBuilder.Entity("FDS2.Data.Models.Update", b =>
                 {
+                    b.HasOne("FDS2.Data.Models.Channel", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId");
+
                     b.HasOne("FDS2.Data.Models.Package", null)
                         .WithMany("Updates")
                         .HasForeignKey("PackageId");
@@ -196,6 +238,21 @@ namespace FDS2.Data.Migrations
                     b.HasOne("FDS2.Data.Models.Version", "Version")
                         .WithMany()
                         .HasForeignKey("VersionId");
+                });
+
+            modelBuilder.Entity("FDS2.Data.Models.UpdateCountry", b =>
+                {
+                    b.HasOne("FDS2.Data.Models.Country", "Country")
+                        .WithMany("UpdateCountries")
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FDS2.Data.Models.Update", "Update")
+                        .WithMany("UpdateCountries")
+                        .HasForeignKey("UpdateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FDS2.Data.Models.UpdateFile", b =>
@@ -208,6 +265,21 @@ namespace FDS2.Data.Migrations
 
                     b.HasOne("FDS2.Data.Models.Update", "Update")
                         .WithMany("UpdateFiles")
+                        .HasForeignKey("UpdateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FDS2.Data.Models.UpdateSoftware", b =>
+                {
+                    b.HasOne("FDS2.Data.Models.Software", "Software")
+                        .WithMany("UpdateSoftwares")
+                        .HasForeignKey("SoftwareId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FDS2.Data.Models.Update", "Update")
+                        .WithMany("UpdateSoftwares")
                         .HasForeignKey("UpdateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

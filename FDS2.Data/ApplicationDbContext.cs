@@ -19,6 +19,8 @@ namespace FDS2.Data
         public DbSet<Models.Version> Versions { get; set; }
         public DbSet<File> Files { get; set; }
         public DbSet<Country> Countries { get; set; }
+        public DbSet<Channel> Channels { get; set; }
+        public DbSet<Software> Softwares { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,18 +29,20 @@ namespace FDS2.Data
             modelBuilder.Entity<Models.Version>().Property(x => x.Id).HasDefaultValueSql("newid()");
             modelBuilder.Entity<File>().Property(x => x.Id).HasDefaultValueSql("newid()");
             modelBuilder.Entity<Country>().Property(x => x.Id).HasDefaultValueSql("newid()");
+            modelBuilder.Entity<Channel>().Property(x => x.Id).HasDefaultValueSql("newid()");
+            modelBuilder.Entity<Software>().Property(x => x.Id).HasDefaultValueSql("newid()");
 
-            //CountryUpdate
-            modelBuilder.Entity<CountryUpdate>()
-                .HasKey(bc => new { bc.CountryId, bc.UpdateId });
-            modelBuilder.Entity<CountryUpdate>()
-                .HasOne(bc => bc.Country)
-                .WithMany(b => b.CountryUpdates)
-                .HasForeignKey(bc => bc.CountryId);
-            modelBuilder.Entity<CountryUpdate>()
+            //UpdateCountry
+            modelBuilder.Entity<UpdateCountry>()
+                .HasKey(bc => new { bc.UpdateId, bc.CountryId });
+            modelBuilder.Entity<UpdateCountry>()
                 .HasOne(bc => bc.Update)
-                .WithMany(c => c.CountryUpdates)
+                .WithMany(b => b.UpdateCountries)
                 .HasForeignKey(bc => bc.UpdateId);
+            modelBuilder.Entity<UpdateCountry>()
+                .HasOne(bc => bc.Country)
+                .WithMany(c => c.UpdateCountries)
+                .HasForeignKey(bc => bc.CountryId);
 
             //PackageFile
             modelBuilder.Entity<PackageFile>()
@@ -63,6 +67,18 @@ namespace FDS2.Data
                 .HasOne(bc => bc.File)
                 .WithMany(c => c.UpdateFiles)
                 .HasForeignKey(bc => bc.FileId);
+
+            //UpdateSoftware
+            modelBuilder.Entity<UpdateSoftware>()
+                .HasKey(bc => new { bc.UpdateId, bc.SoftwareId });
+            modelBuilder.Entity<UpdateSoftware>()
+                .HasOne(bc => bc.Update)
+                .WithMany(b => b.UpdateSoftwares)
+                .HasForeignKey(bc => bc.UpdateId);
+            modelBuilder.Entity<UpdateSoftware>()
+                .HasOne(bc => bc.Software)
+                .WithMany(c => c.UpdateSoftwares)
+                .HasForeignKey(bc => bc.SoftwareId);
         }
     }
 }

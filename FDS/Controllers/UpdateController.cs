@@ -26,7 +26,7 @@ namespace FDS.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            var update = _updateService.GetUpdate("136bb7c8-50dd-4059-aeec-8508ec15b8ca");
+            var update = _updateService.GetUpdate("F44A6650-7962-454A-971E-49B01F7D9E60");
 
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast

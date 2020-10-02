@@ -13,6 +13,6 @@ namespace FDS2.Data.Models
         public Guid Id { get; set; }
         public string Code { get; set; }
 
-        public virtual IEnumerable<CountryUpdate> CountryUpdates { get; set; }
+        public virtual IEnumerable<UpdateCountry> UpdateCountries { get; set; }
     }
 }

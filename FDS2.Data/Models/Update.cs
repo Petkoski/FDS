@@ -11,11 +11,13 @@ namespace FDS2.Data.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public bool CountryRestrictions { get; set; }
         public DateTime? PublishDate { get; set; }
+        public DateTime CreatedDate { get; set; }
 
         public virtual Version Version { get; set; }
-        public virtual IEnumerable<CountryUpdate> CountryUpdates { get; set; }
+        public virtual Channel Channel { get; set; }
+        public virtual IEnumerable<UpdateCountry> UpdateCountries { get; set; }
         public virtual IEnumerable<UpdateFile> UpdateFiles { get; set; }
+        public virtual IEnumerable<UpdateSoftware> UpdateSoftwares { get; set; }
     }
 }
