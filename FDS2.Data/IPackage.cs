@@ -9,5 +9,6 @@ namespace FDS2.Data
     {
         IEnumerable<Package> GetAll();
         Package GetById(Guid id);
+        Package GetByIdLight(Guid id);
     }
 }

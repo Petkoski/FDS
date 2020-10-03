@@ -9,6 +9,6 @@ namespace FDS2.Data.Enums
         Linux = 1,
         Android = 2,
         Mac = 3,
-        Windows = 4
+        Win32 = 4
     }
 }

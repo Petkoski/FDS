@@ -1,4 +1,6 @@
 ﻿using FDS2.Data;
+using FDS2.Data.Enums;
+using FDS2.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,10 +25,20 @@ namespace FDS2.Service
                 .FirstOrDefault(v => v.Id == versionId);
         }
 
-        public IEnumerable<Data.Models.Version> GetAllForClient(Guid packageId, string software, string country)
+        public IEnumerable<Data.Models.Version> GetAllForClient(Guid packageId, string clientSoftware, string clientCountry)
         {
-            var package = _packageService.GetById(packageId);
-            return package.Updates.Select(u => u.Version).Distinct();
+            var package = _packageService.GetByIdLight(packageId);
+            return FilterVersions(package.Updates.ToList(), clientSoftware, clientCountry);
+        }
+
+        private IEnumerable<Data.Models.Version> FilterVersions(List<Update> updates, string clientSoftware, string clientCountry)
+        {
+            return updates.Where(u => u.UpdateSoftwares.Any(us => us.Software.Name.ToLower() == clientSoftware.ToLower())
+                && (u.UpdateCountries.Count() == 0 || u.UpdateCountries.Any(c => c.Country.Code.ToLower() == clientCountry.ToLower()))
+                && (u.PublishDate is null || u.PublishDate <= DateTime.Now)
+                && u.Channel.Value == (int)ChannelEnum.Public)
+                .Select(u => u.Version)
+                .Distinct();
         }
     }
 }

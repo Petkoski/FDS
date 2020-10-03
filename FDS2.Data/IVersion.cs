@@ -8,6 +8,6 @@ namespace FDS2.Data
     public interface IVersion
     {
         Models.Version GetById(Guid versionId);
-        IEnumerable<Models.Version> GetAllForClient(Guid packageId, string software, string country);
+        IEnumerable<Models.Version> GetAllForClient(Guid packageId, string clientSoftware, string clientCountry);
     }
 }

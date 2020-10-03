@@ -43,5 +43,27 @@ namespace FDS2.Service
                     .ThenInclude(pf => pf.File)
                 .FirstOrDefault();
         }
+
+        public Package GetByIdLight(Guid packageId)
+        {
+            return _context.Packages
+                .Where(p => p.Id == packageId)
+                .Include(p => p.Updates)
+                    .ThenInclude(u => u.Version)
+                .Include(p => p.Updates)
+                    .ThenInclude(u => u.Channel)
+                .Include(p => p.Updates)
+                    .ThenInclude(u => u.UpdateCountries)
+                        .ThenInclude(uc => uc.Country)
+                //.Include(p => p.Updates)
+                //    .ThenInclude(u => u.UpdateFiles)
+                //        .ThenInclude(uf => uf.File)
+                .Include(p => p.Updates)
+                    .ThenInclude(u => u.UpdateSoftwares)
+                        .ThenInclude(uf => uf.Software)
+                //.Include(p => p.PackageFiles)
+                //    .ThenInclude(pf => pf.File)
+                .FirstOrDefault();
+        }
     }
 }
