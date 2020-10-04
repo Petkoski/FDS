@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using FDS.Models;
 using FDS.Models.Response;
 using FDS2.Data;
-using FDS2.Data.Enums;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FDS.Controllers
