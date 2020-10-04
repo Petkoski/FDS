@@ -35,7 +35,7 @@ namespace FDS.Controllers
         {
             if (_validateService.ValidateClientData(data.PackageId, data.VersionId, data.Software, out Guid packageId, out Guid versionId))
             {
-                var update = _updateService.GetUpdate(packageId, versionId, data.Country, data.Software);
+                var update = _updateService.GetUpdate(packageId, versionId, data.Software, data.Country);
                 var zippedFile = await _zipService.ReturnZippedUpdateBytes(update?.UpdateFiles?.Select(uf => uf.File).ToList(), _hostingEnvironment.ContentRootPath);
                 
                 if (zippedFile != null)

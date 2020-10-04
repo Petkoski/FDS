@@ -17,9 +17,9 @@ namespace FDS2.Service
         {
             bool packageCheck = Guid.TryParse(packageId, out packageIdGuid);
             bool versionCheck = Guid.TryParse(versionId, out versionIdGuid);
-            return (packageCheck
+            return packageCheck
                 && versionCheck
-                && Enum.TryParse(clientSoftware, out SoftwareEnum software));
+                && Enum.TryParse(clientSoftware, out SoftwareEnum software);
         }
     }
 }

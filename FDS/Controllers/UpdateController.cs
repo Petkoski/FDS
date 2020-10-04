@@ -29,7 +29,7 @@ namespace FDS.Controllers
         {
             if (_validateService.ValidateClientData(data.PackageId, data.VersionId, data.Software, out Guid packageId, out Guid versionId))
             {
-                var update = _updateService.GetUpdate(packageId, versionId, data.Country, data.Software);
+                var update = _updateService.GetUpdate(packageId, versionId, data.Software, data.Country);
                 if (update != null && update.UpdateFiles.Count() > 0)
                 {
                     return PrepareVersionsModel(update);

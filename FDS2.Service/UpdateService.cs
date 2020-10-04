@@ -14,32 +14,21 @@ namespace FDS2.Service
         private readonly ApplicationDbContext _context;
         private readonly IPackage _packageService;
         private readonly IVersion _versionService;
+        private readonly IFilter _filterService;
 
-        public UpdateService(ApplicationDbContext context, IPackage packageService, IVersion versionService)
+        public UpdateService(ApplicationDbContext context, IPackage packageService, IVersion versionService, IFilter filterService)
         {
             _context = context;
             _packageService = packageService;
             _versionService = versionService;
+            _filterService = filterService;
         }
 
-        public Update GetUpdate(Guid packageId, Guid versionId, string clientCountry, string clientSoftware)
+        public Update GetUpdate(Guid packageId, Guid versionId, string clientSoftware, string clientCountry)
         {
             var package = _packageService.GetById(packageId);
             var version = _versionService.GetById(versionId);
-
-            return FilterUpdates(package?.Updates?.ToList(), version, clientCountry, clientSoftware);
-        }
-
-        private Update FilterUpdates(List<Update> updates, Data.Models.Version version, string clientCountry, string clientSoftware)
-        {
-            return updates?.Where(u => u.UpdateSoftwares.Any(us => us.Software.Name.ToLower() == clientSoftware.ToLower())
-                && u.Version.Order > version?.Order
-                && (u.UpdateCountries.Count() == 0 || u.UpdateCountries.Any(c => c.Country.Code.ToLower() == clientCountry.ToLower()))
-                && (u.PublishDate is null || u.PublishDate <= DateTime.Now)
-                && u.Channel.Value == (int)ChannelEnum.Public)
-                .OrderByDescending(u => u.UpdateCountries.Count()) //Order region-specific updates on top
-                .ThenByDescending(u => u.CreatedDate) //Order newest updates on top
-                .FirstOrDefault();
+            return _filterService.FilterUpdates(package?.Updates?.ToList(), version, clientSoftware, clientCountry);
         }
     }
 }

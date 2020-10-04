@@ -7,6 +7,6 @@ namespace FDS2.Data
 {
     public interface IUpdate
     {
-        Update GetUpdate(Guid packageId, Guid versionId, string clientCountry, string clientSoftware);
+        Update GetUpdate(Guid packageId, Guid versionId, string clientSoftware, string clientCountry);
     }
 }
