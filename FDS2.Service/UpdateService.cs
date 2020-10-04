@@ -27,13 +27,13 @@ namespace FDS2.Service
             var package = _packageService.GetById(packageId);
             var version = _versionService.GetById(versionId);
 
-            return FilterUpdates(package.Updates.ToList(), version, clientCountry, clientSoftware);
+            return FilterUpdates(package?.Updates?.ToList(), version, clientCountry, clientSoftware);
         }
 
         private Update FilterUpdates(List<Update> updates, Data.Models.Version version, string clientCountry, string clientSoftware)
         {
-            return updates.Where(u => u.UpdateSoftwares.Any(us => us.Software.Name.ToLower() == clientSoftware.ToLower())
-                && u.Version.Order > version.Order
+            return updates?.Where(u => u.UpdateSoftwares.Any(us => us.Software.Name.ToLower() == clientSoftware.ToLower())
+                && u.Version.Order > version?.Order
                 && (u.UpdateCountries.Count() == 0 || u.UpdateCountries.Any(c => c.Country.Code.ToLower() == clientCountry.ToLower()))
                 && (u.PublishDate is null || u.PublishDate <= DateTime.Now)
                 && u.Channel.Value == (int)ChannelEnum.Public)

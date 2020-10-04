@@ -16,53 +16,46 @@ namespace FDS.Controllers
     public class UpdateController : ControllerBase
     {
         private readonly IUpdate _updateService;
+        private readonly IValidate _validateService;
 
-        public UpdateController(IUpdate updateService)
+        public UpdateController(IUpdate updateService, IValidate validateService)
         {
             _updateService = updateService;
+            _validateService = validateService;
         }
 
         [HttpPost]
         public UpdateResponse Get([FromBody]ClientData data)
         {
-            if (ValidateClientInput(data, out Guid packageId, out Guid versionId))
+            if (_validateService.ValidateClientData(data.PackageId, data.VersionId, data.Software, out Guid packageId, out Guid versionId))
             {
                 var update = _updateService.GetUpdate(packageId, versionId, data.Country, data.Software);
-                return PrepareVersionsModel(update);
+                if (update != null && update.UpdateFiles.Count() > 0)
+                {
+                    return PrepareVersionsModel(update);
+                }
+                else
+                {
+                    return EmptyUpdateResponse();
+                }
             }
             else
             {
                 return EmptyUpdateResponse();
             }
-        }
-
-        private bool ValidateClientInput(ClientData data, out Guid packageId, out Guid versionId)
-        {
-            bool packageCheck = Guid.TryParse(data.PackageId, out packageId);
-            bool versionCheck = Guid.TryParse(data.VersionId, out versionId);
-            return (packageCheck 
-                && versionCheck 
-                && Enum.TryParse(data.Software, out SoftwareEnum software));
         }
 
         private UpdateResponse PrepareVersionsModel(FDS2.Data.Models.Update update)
         {
-            if (update?.UpdateFiles?.Count() > 0)
+            return new UpdateResponse
             {
-                return new UpdateResponse
+                Files = update.UpdateFiles.Select(f => new FileResponse
                 {
-                    Files = update.UpdateFiles.Select(f => new FileResponse
-                    {
-                        Id = f.File.Id.ToString(),
-                        Location = f.File.Location,
-                        Checksum = f.File.Checksum
-                    })
-                };
-            }
-            else
-            {
-                return EmptyUpdateResponse();
-            }
+                    Id = f.File.Id.ToString(),
+                    Location = f.File.Location,
+                    Checksum = f.File.Checksum
+                })
+            };
         }
 
         private UpdateResponse EmptyUpdateResponse()

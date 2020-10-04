@@ -14,29 +14,33 @@ namespace FDS.Controllers
     public class VersionController : ControllerBase
     {
         private readonly IVersion _versionService;
+        private readonly IValidate _validateService;
 
-        public VersionController(IVersion versionService)
+        public VersionController(IVersion versionService, IValidate validateService)
         {
             _versionService = versionService;
+            _validateService = validateService;
         }
 
         [HttpPost]
         public IEnumerable<VersionResponse> Get([FromBody]ClientData data)
         {
-            if (ValidateClientInput(data, out Guid packageId))
+            if (_validateService.ValidateClientData(data.PackageId, out Guid packageId))
             {
                 var versions = _versionService.GetAllForClient(packageId, data.Software, data.Country);
-                return PrepareVersionsModel(versions);
+                if (versions != null && versions.Count() > 0)
+                {
+                    return PrepareVersionsModel(versions);
+                }
+                else
+                {
+                    return EmptyVersionResponse();
+                }
             }
             else
             {
-                return new List<VersionResponse>();
+                return EmptyVersionResponse();
             }
-        }
-
-        private bool ValidateClientInput(ClientData data, out Guid packageId)
-        {
-            return Guid.TryParse(data.PackageId, out packageId);
         }
 
         private IEnumerable<VersionResponse> PrepareVersionsModel(IEnumerable<FDS2.Data.Models.Version> versions)
@@ -46,6 +50,11 @@ namespace FDS.Controllers
                 Id = v.Id.ToString(),
                 Name = v.Name
             });
+        }
+
+        private List<VersionResponse> EmptyVersionResponse()
+        {
+            return new List<VersionResponse>();
         }
     }
 }

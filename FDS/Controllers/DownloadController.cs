@@ -19,28 +19,30 @@ namespace FDS.Controllers
     {
         private readonly IUpdate _updateService;
         private readonly IZip _zipService;
-        private IWebHostEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IValidate _validateService;
 
-        public DownloadController(IUpdate updateService, IZip zipService, IWebHostEnvironment environment)
+        public DownloadController(IUpdate updateService, IZip zipService, IWebHostEnvironment environment, IValidate validateService)
         {
             _updateService = updateService;
             _zipService = zipService;
             _hostingEnvironment = environment;
+            _validateService = validateService;
         }
 
         [HttpPost]
         public async Task<ActionResult> Get([FromBody]ClientData data)
         {
-            if (ValidateClientInput(data, out Guid packageId, out Guid versionId))
+            if (_validateService.ValidateClientData(data.PackageId, data.VersionId, data.Software, out Guid packageId, out Guid versionId))
             {
                 var update = _updateService.GetUpdate(packageId, versionId, data.Country, data.Software);
-                var zippedFile = await _zipService.ReturnZippedUpdateBytes(update.UpdateFiles.Select(uf => uf.File).ToList(), _hostingEnvironment.ContentRootPath);
+                var zippedFile = await _zipService.ReturnZippedUpdateBytes(update?.UpdateFiles?.Select(uf => uf.File).ToList(), _hostingEnvironment.ContentRootPath);
                 
                 if (zippedFile != null)
                 {
                     return new FileContentResult(zippedFile, System.Net.Mime.MediaTypeNames.Application.Zip)
                     {
-                        FileDownloadName = "update.zip"
+                        FileDownloadName = "Update.zip"
                     };
                 }
                 else
@@ -52,15 +54,6 @@ namespace FDS.Controllers
             {
                 return NotFound();
             }
-        }
-
-        private bool ValidateClientInput(ClientData data, out Guid packageId, out Guid versionId)
-        {
-            bool packageCheck = Guid.TryParse(data.PackageId, out packageId);
-            bool versionCheck = Guid.TryParse(data.VersionId, out versionId);
-            return (packageCheck
-                && versionCheck
-                && Enum.TryParse(data.Software, out SoftwareEnum software));
         }
     }
 }

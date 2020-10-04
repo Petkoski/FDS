@@ -41,6 +41,7 @@ namespace FDS
             services.AddScoped<IUpdate, UpdateService>();
             services.AddScoped<IVersion, VersionService>();
             services.AddScoped<IZip, ZipService>();
+            services.AddScoped<IValidate, ValidateService>();
 
             services.AddControllers();
         }
