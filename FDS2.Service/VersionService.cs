@@ -27,7 +27,7 @@ namespace FDS2.Service
 
         public IEnumerable<Data.Models.Version> GetAllForClient(Guid packageId, string clientSoftware, string clientCountry)
         {
-            var package = _packageService.GetByIdLight(packageId);
+            var package = _packageService.GetById(packageId, false);
             return FilterVersions(package.Updates.ToList(), clientSoftware, clientCountry);
         }
 

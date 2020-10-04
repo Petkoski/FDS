@@ -16,5 +16,9 @@
     <ProjectReference Include="..\FDS2.Service\FDS2.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="zippedUpdates\" />
+  </ItemGroup>
+
 
 </Project>

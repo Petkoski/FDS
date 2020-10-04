@@ -40,6 +40,7 @@ namespace FDS
             services.AddScoped<IPackage, PackageService>();
             services.AddScoped<IUpdate, UpdateService>();
             services.AddScoped<IVersion, VersionService>();
+            services.AddScoped<IZip, ZipService>();
 
             services.AddControllers();
         }

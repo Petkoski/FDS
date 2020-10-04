@@ -8,7 +8,6 @@ namespace FDS2.Data
     public interface IPackage
     {
         IEnumerable<Package> GetAll();
-        Package GetById(Guid id);
-        Package GetByIdLight(Guid id);
+        Package GetById(Guid id, bool includeFiles = true);
     }
 }
